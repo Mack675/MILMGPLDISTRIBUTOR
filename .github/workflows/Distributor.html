@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>MILMGPL Products Price Calculator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f0f2f5;
+      color: #333;
+      font-size: 16px;
+    }
+    h1, h2, h3 {
+      color: #222;
+    }
+    input[type="text"] {
+      padding: 12px;
+      width: 400px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      margin-bottom: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      margin-right: 10px;
+      margin-bottom: 10px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .cancel-btn {
+      background-color: #dc3545;
+    }
+    .cancel-btn:hover {
+      background-color: #c82333;
+    }
+    .share-btn {
+      background-color: #25D366;
+    }
+    .share-btn:hover {
+      background-color: #1ebe5d;
+    }
+    .result, .cart, .totals, .discountSection, .couponSection, .person {
+      margin-top: 20px;
+      background-color: #fff;
+      padding: 15px;
+      border-radius: 4px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    table {
+      border-collapse: collapse;
+      margin-top: 10px;
+      width: 100%;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: left;
+      font-size: 15px;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    .discountOptions label {
+      margin-right: 15px;
+    }
+    #controls {
+      margin-bottom: 20px;
+    }
+    /* Disclaimer styles */
+    .disclaimer {
+      background-color: black;
+      color: white;
+      padding: 15px;
+      text-align: center;
+      margin-top: 20px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <h1>MILMGPL Products Price Calculator</h1>
+  <div id="controls">
+    <button onclick="clearAll()">Clear All</button>
+    <button onclick="addPerson()">Add New Person</button>
+  </div>
+  
+  <!-- Container for multiple person sections -->
+  <div id="personsContainer"></div>
+  
+  <!-- Grand Totals Section -->
+  <div class="totals" id="grandTotals">
+    <h2>Grand Totals</h2>
+    <div id="grandTotalsContent">
+      <p>No persons added yet.</p>
+    </div>
+  </div>
+
+  <script>
+    // Full product data extracted from the PDF (102 products)
+    const products = [
+      { code: "IS13064", name: "ON & ON BDY BTR CRM", rsp: 231.00, mrp: 330.00 },
+      { code: "IS13956", name: "ELEMENTSÂ CYCLOVA 30 CAPSULES", rsp: 1650.00, mrp: 2200.00 },
+      { code: "IS13957", name: "ELEMENTS ANTILERGY LIQUID 200ML", rsp: 308.00, mrp: 385.00 },
+      { code: "IS13958", name: "ELEMENTSÂ THYHEALTH LIQUID 200ML", rsp: 594.00, mrp: 770.00 },
+      { code: "IS13959", name: "ELEMENTS AYUSHWAAS AVALEHA 250GMS", rsp: 1067.00, mrp: 1430.00 },
+      { code: "IS15458", name: "ON & ON 9 E 5", rsp: 3245.00, mrp: 4070.00 },
+      { code: "IS9807", name: "ON & ON  SPRLN GOLD", rsp: 1320.00, mrp: 1650.00 },
+      { code: "IS15082", name: "ON & ON MASALA KAWAH GREEN TEA", rsp: 165.00, mrp: 209.00 },
+      { code: "IS15083", name: "ON & ON KASHMIRI KAWAH GREEN TEA", rsp: 330.00, mrp: 418.00 },
+      { code: "IS15391", name: "ON & ON NU WOMAN SANITARY NAPKINS", rsp: 275.00, mrp: 357.00 },
+      { code: "IS15192", name: "ELEMENTS- NATCIUM", rsp: 935.00, mrp: 1375.00 },
+      { code: "IS13362", name: "NEW ON & ON DIABA LIFE 600.85 MG", rsp: 2200.00, mrp: 2750.00 },
+      { code: "IS8858", name: "ON & ON  KAVCH PRASH", rsp: 979.00, mrp: 1424.00 },
+      { code: "IS9658", name: "ELEMENTS  LIV AGAIN L", rsp: 198.00, mrp: 264.00 },
+      { code: "IS9659", name: "ELEMENTS  COF NIL", rsp: 154.00, mrp: 214.00 },
+      { code: "IS9660", name: "ELEMENTS  WOMAN COMP", rsp: 275.00, mrp: 374.00 },
+      { code: "IS9661", name: "ELEMENTS  M.G. BLD PRF", rsp: 308.00, mrp: 418.00 },
+      { code: "IS9662", name: "ELEMENTS  MAN SHKTIMN", rsp: 1089.00, mrp: 1375.00 },
+      { code: "IS9663", name: "ELEMENTS  WELL HART", rsp: 594.00, mrp: 797.00 },
+      { code: "IS9664", name: "ELEMENTS  BELOW 37", rsp: 748.00, mrp: 1001.00 },
+      { code: "IS9665", name: "ELEMENTS  CHAMPI CHMPN", rsp: 429.00, mrp: 577.00 },
+      { code: "IS15543", name: "ON & ON MOROLIFE", rsp: 2750.00, mrp: 3300.00 },
+      { code: "IS13187", name: "ELEMENTS CC SHAMPOO", rsp: 275.00, mrp: 374.00 },
+      { code: "IS13188", name: "ELEMENTS A.D. SHAMPOO", rsp: 275.00, mrp: 374.00 },
+      { code: "IS13229", name: "ELEMENTS MULTI-ACTION COMPLEXION CREAM", rsp: 275.00, mrp: 374.00 },
+      { code: "IS13282", name: "ON & ONÂ  SANDALWOOD SOAP 75 GMS", rsp: 83.00, mrp: 108.00 },
+      { code: "IS13283", name: "ON & ON PAPAYA SOAP 75 GMS", rsp: 83.00, mrp: 108.00 },
+      { code: "IS13284", name: "ON & ONÂ  NEEM SOAP 75 GMS", rsp: 83.00, mrp: 108.00 },
+      { code: "IS13285", name: "ON & ONÂ  TURMERIC SOAP 75 GMS", rsp: 83.00, mrp: 108.00 },
+      { code: "IS13286", name: "ON & ON MILK AND STRAWBERRY SOAP 75 GMS", rsp: 83.00, mrp: 108.00 },
+      { code: "IS13311", name: "ELEMENTS RADIANT GLOW FACE WASH", rsp: 187.00, mrp: 258.00 },
+      { code: "IS13375", name: "ELEMENTS WHITENING BODY LOTION", rsp: 165.00, mrp: 220.00 },
+      { code: "IS13376", name: "ELEMENTS COCOA BUTTER BODY LOTION", rsp: 193.00, mrp: 264.00 },
+      { code: "IS13377", name: "ELEMENTS INTENSE MOISTURISING BODY LOTION - ALOVERA", rsp: 209.00, mrp: 286.00 },
+      { code: "IS13378", name: "ELEMENTS EMOLLIENT BODY CREAM", rsp: 209.00, mrp: 286.00 },
+      { code: "IS13379", name: "ELEMENTS MOISTURISING HAND WASH - ROSE & GLYCERIN", rsp: 330.00, mrp: 440.00 },
+      { code: "IS13380", name: "ELEMENTS 3 IN 1 FACE WASH", rsp: 149.00, mrp: 198.00 },
+      { code: "IS13383", name: "ELEMENTS UNDER EYE GEL", rsp: 237.00, mrp: 297.00 },
+      { code: "IS14004", name: "ELEMENTS ACTI-FRESH SHAVE GEL", rsp: 242.00, mrp: 308.00 },
+      { code: "IS14006", name: "ELEMENTS 8 IN 1 HAIR CONDITIONER 100 ML", rsp: 358.00, mrp: 451.00 },
+      { code: "IS14377", name: "ELEMENTS PRIVY WASH 100ML", rsp: 286.00, mrp: 363.00 },
+      { code: "IS14951", name: "ELEMENTS EGA DAY CREAM 25GMS", rsp: 534.00, mrp: 671.00 },
+      { code: "IS14952", name: "ELEMENTS EGA NIGHT CREAM 25GMS", rsp: 534.00, mrp: 671.00 },
+      { code: "IS15199", name: "ELEMENTSÂ WELLNESSÂ GÂ PLUSÂ PROBIOTIC", rsp: 688.00, mrp: 825.00 },
+      { code: "IS14452", name: "ON & ON BHRNGRAJ OIL", rsp: 358.00, mrp: 484.00 },
+      { code: "IS15010", name: "ON & ON HRB. T-PST", rsp: 143.00, mrp: 194.00 },
+      { code: "IS15245", name: "ELEMENTS RED HRBL TOOTH PASTE 150 GM", rsp: 160.00, mrp: 205.00 },
+      { code: "IS15246", name: "ELEMENTS F G TOOTH PASTE 120 GM", rsp: 165.00, mrp: 226.00 },
+      { code: "IS15234", name: "ON & ON COLOUR SHAMPOO 20ML", rsp: 83.00, mrp: 110.00 },
+      { code: "IS15466", name: "ON & ON HERBAL ROLLON INHALER", rsp: 138.00, mrp: 192.00 },
+      { code: "IS13363", name: "ELEMENTS URI FLUSH 3 LIQUID", rsp: 374.00, mrp: 522.00 },
+      { code: "IS9651", name: "ELEMENTS  NO VEDNA CAP", rsp: 1012.00, mrp: 1265.00 },
+      { code: "IS9652", name: "ELEMENTS  NO VEDNA GEL", rsp: 253.00, mrp: 319.00 },
+      { code: "IS9653", name: "ELEMENTS  PHYT STRS CP", rsp: 825.00, mrp: 1122.00 },
+      { code: "IS9654", name: "ELEMENTS  IMMUNO + CAP", rsp: 825.00, mrp: 1034.00 },
+      { code: "IS9655", name: "ELEMENTS  LIV AGAIN C", rsp: 792.00, mrp: 990.00 },
+      { code: "IS9656", name: "ELEMENTS  DAILY DETOX", rsp: 792.00, mrp: 990.00 },
+      { code: "IS9657", name: "ELEMENTS  WND HLNG CRM", rsp: 143.00, mrp: 214.00 },
+      { code: "IS15132", name: "ELEMENTS WELLNESS AYUHEEL 50GMS", rsp: 193.00, mrp: 242.00 },
+      { code: "IS15133", name: "ELEMENTS WELLNESS PRO NASIKA 20ML", rsp: 187.00, mrp: 242.00 },
+      { code: "IS15134", name: "ELEMENTS WELLNESS EYE NERGY 10ML", rsp: 165.00, mrp: 209.00 },
+      { code: "IS15174", name: "ON & ON NUTRILIFE CHOCOLATE 750 GMS", rsp: 2090.00, mrp: 2640.00 },
+      { code: "IS15334", name: "INDIAGRO MI PROUD 250ML", rsp: 1045.00, mrp: 1320.00 },
+      { code: "IS15335", name: "INDIAGRO MI CITRA 250ML", rsp: 1650.00, mrp: 2062.00 },
+      { code: "IS15336", name: "INDIAGRO MI VEER 250ML", rsp: 2310.00, mrp: 2915.00 },
+      { code: "IS15337", name: "INDIAGRO BHUASTRA SUPER 2KG", rsp: 1210.00, mrp: 1512.00 },
+      { code: "IS15338", name: "INDIAGRO MI SPRAY PLUS 100ML", rsp: 440.00, mrp: 550.00 },
+      { code: "IS15339", name: "INDIAGRO GROWMAGIC ADVANCE 100GMS", rsp: 1419.00, mrp: 1815.00 },
+      { code: "IS15340", name: "INDIAGRO  MODIPHY  250 ML", rsp: 440.00, mrp: 550.00 },
+      { code: "IS15419", name: "INDIAGRO Y-RAS PLUS 250ML", rsp: 825.00, mrp: 1045.00 },
+      { code: "IS15540", name: "INDIAGRO OLIF SUPER 16 500 ML", rsp: 1210.00, mrp: 1430.00 },
+      { code: "IS13148", name: "ELEMENTS  PROTEIN PWDR", rsp: 2420.00, mrp: 3080.00 },
+      { code: "IS13359", name: "ELEMENTS FEALING IRON CAPSULE", rsp: 627.00, mrp: 852.00 },
+      { code: "IS13950", name: "ELEMENTS URI FLUSH-3 PLUS TABLETS", rsp: 902.00, mrp: 1210.00 },
+      { code: "IS8826", name: "ON & ON  NUTRILIFE", rsp: 2090.00, mrp: 2640.00 },
+      { code: "IS13360", name: "ELEMENTS FEALING IRON SYRUP", rsp: 314.00, mrp: 418.00 },
+      { code: "IS15235", name: "NEUSTAR NU FEMME PERFUME FOR WOMEN 100 ML", rsp: 550.00, mrp: 1100.00 },
+      { code: "IS15236", name: "NEUSTAR TYZON PERFUME FOR MEN 100ML", rsp: 550.00, mrp: 1100.00 },
+      { code: "IS15237", name: "NEUSTAR NU FEMME DEO FOR WOMEN 200ML", rsp: 182.00, mrp: 231.00 },
+      { code: "IS15238", name: "NEUSTAR TYZON DEO FOR MEN 200ML", rsp: 182.00, mrp: 231.00 },
+      { code: "IS15270", name: "ANTI BACTERIAL DISH WASH ROUND BAR 500GMS", rsp: 66.00, mrp: 88.00 },
+      { code: "IS15239", name: "NEUSTAR TOOTH BRUSH PACK OF 4", rsp: 105.00, mrp: 126.00 },
+      { code: "IS15271", name: "KILL & SHINE POWERFUL TOILET CLEANER 500 ML", rsp: 83.00, mrp: 110.00 },
+      { code: "IS15272", name: "DISINFECTANT FLOOR CLEANER 500 ML", rsp: 99.00, mrp: 132.00 },
+      { code: "IS13528", name: "NEUSTAR NEEM FACE WASH 100ML", rsp: 121.00, mrp: 154.00 },
+      { code: "IS13529", name: "NEUSTAR PAPAYA FACE WASH 100ML", rsp: 121.00, mrp: 154.00 },
+      { code: "IS13530", name: "NEUSTAR WALLNUT SCRUB 100ML", rsp: 138.00, mrp: 176.00 },
+      { code: "IS13531", name: "NEUSTAR PETROLEUM JELLY 50GMS", rsp: 50.00, mrp: 66.00 },
+      { code: "IS13532", name: "NEUSTAR SHAMPOO TUBE 30ML", rsp: 24.00, mrp: 38.00 },
+      { code: "IS13533", name: "NEUSTAR AMLA HAIR OIL 200ML", rsp: 149.00, mrp: 187.00 },
+      { code: "IS15392", name: "NEUSTAR TULSI  & MINT TOOTH PASTE 100GMS", rsp: 61.00, mrp: 75.00 },
+      { code: "IS15273", name: "CLEAN & SHINE LEMON FRESH DISH WASH LIQUID 500 ML", rsp: 127.00, mrp: 165.00 },
+      { code: "IS15274", name: "MAX BRIGHT MATIC LIQUID LAUNDRY DETERGENT 500ML", rsp: 187.00, mrp: 242.00 },
+      { code: "IS15393", name: "STREAK FREE GLASS  CLEANR 500 ML", rsp: 77.00, mrp: 93.00 },
+      { code: "IS13515", name: "NEUSTAR NEEM & TULSI SOAP 100GMS", rsp: 39.00, mrp: 54.00 },
+      { code: "IS13516", name: "NEUSTAR LIME & ALOE VERA SOAP 100GMS", rsp: 39.00, mrp: 54.00 },
+      { code: "IS13517", name: "NEUSTAR ROSE FRAGRANCE SOAP 100GMS", rsp: 39.00, mrp: 54.00 },
+      { code: "IS13523", name: "NEUSTAR JASMINE & ALMOND SOAP 100GMS", rsp: 39.00, mrp: 54.00 },
+      { code: "IS13524", name: "NEUSTAR ANTIBACTERIAL SOAP 100GMS", rsp: 39.00, mrp: 54.00 },
+      { code: "IS13525", name: "NEUSTAR SANDALWOOD SOAP 100GMS", rsp: 39.00, mrp: 54.00 },
+      { code: "IS13526", name: "NEUSTAR TALC POWDER 300GMS", rsp: 154.00, mrp: 198.00 },
+      { code: "IS13697", name: "AAHAR Â TEALITE", rsp: 330.00, mrp: 420.00 }
+    ];
+
+    // Global persons object and counter
+    let persons = {};
+    let personCounter = 0;
+
+    // Utility functions
+    function correctName(name) {
+      return name.replace(/diaba\s*life/gi, "Diaba Life");
+    }
+    function removeVowels(str) {
+      return str.replace(/[aeiou]/gi, '');
+    }
+    function levenshteinDistance(a, b) {
+      const matrix = [];
+      const aLen = a.length;
+      const bLen = b.length;
+      if (aLen === 0) return bLen;
+      if (bLen === 0) return aLen;
+      for (let i = 0; i <= bLen; i++) {
+        matrix[i] = [i];
+      }
+      for (let j = 0; j <= aLen; j++) {
+        matrix[0][j] = j;
+      }
+      for (let i = 1; i <= bLen; i++) {
+        for (let j = 1; j <= aLen; j++) {
+          if (b.charAt(i - 1) === a.charAt(j - 1)) {
+            matrix[i][j] = matrix[i - 1][j - 1];
+          } else {
+            matrix[i][j] = Math.min(
+              matrix[i - 1][j] + 1,
+              matrix[i][j - 1] + 1,
+              matrix[i - 1][j - 1] + 1
+            );
+          }
+        }
+      }
+      return matrix[bLen][aLen];
+    }
+
+    // Create a new person section
+    function addPerson() {
+      personCounter++;
+      const personId = 'person-' + personCounter;
+      persons[personId] = { selectedProducts: {} };
+
+      const container = document.getElementById('personsContainer');
+      const personDiv = document.createElement('div');
+      personDiv.className = 'person';
+      personDiv.id = personId;
+      personDiv.innerHTML = `
+        <h2>Person ${personCounter}</h2>
+        <input type="text" class="customerName" placeholder="Enter Customer Name">
+        <br>
+        <input type="text" class="productInput" placeholder="Enter product name">
+        <button onclick="searchProduct('${personId}', this)">Search</button>
+        <div class="result"></div>
+        <h3>Selected Products</h3>
+        <div class="cart"></div>
+        <div class="discountSection">
+          <p>Select Discount Rate (applied on MRP):</p>
+          <div class="discountOptions">
+            <label>
+              <input type="radio" name="discountRate-${personId}" value="0.01" onchange="updatePersonTotals('${personId}')"> 1%
+            </label>
+            <label>
+              <input type="radio" name="discountRate-${personId}" value="0.02" onchange="updatePersonTotals('${personId}')"> 2%
+            </label>
+            <label>
+              <input type="radio" name="discountRate-${personId}" value="0.03" onchange="updatePersonTotals('${personId}')"> 3%
+            </label>
+            <label>
+              <input type="radio" name="discountRate-${personId}" value="0.04" onchange="updatePersonTotals('${personId}')"> 4%
+            </label>
+            <label>
+              <input type="radio" name="discountRate-${personId}" value="0.05" onchange="updatePersonTotals('${personId}')" checked> 5%
+            </label>
+            <label>
+              <input type="radio" name="discountRate-${personId}" value="0.10" onchange="updatePersonTotals('${personId}')"> 10%
+            </label>
+          </div>
+        </div>
+        <div class="totals"></div>
+        <button class="share-btn" onclick="shareCart('${personId}')">Share via WhatsApp</button>
+      `;
+      container.appendChild(personDiv);
+      updateGrandTotals();
+    }
+
+    // Clear all persons and reset page
+    function clearAll() {
+      persons = {};
+      personCounter = 0;
+      document.getElementById('personsContainer').innerHTML = "";
+      updateGrandTotals();
+      // Automatically add Person 1 after clearing
+      addPerson();
+    }
+
+    // Search product for a given person
+    function searchProduct(personId, btn) {
+      const personDiv = document.getElementById(personId);
+      const input = personDiv.querySelector('.productInput').value.toLowerCase().trim();
+      const resultDiv = personDiv.querySelector('.result');
+      resultDiv.innerHTML = '';
+      if (!input) {
+        resultDiv.innerHTML = '<p>Please enter a product name.</p>';
+        return;
+      }
+      let matches = products.filter(p => p.name.toLowerCase().includes(input));
+      if (matches.length === 0) {
+        const inputNoVowels = removeVowels(input);
+        matches = products.filter(p => removeVowels(p.name.toLowerCase()).includes(inputNoVowels));
+      }
+      if (matches.length === 0) {
+        let distances = products.map(p => {
+          return { product: p, distance: levenshteinDistance(input, p.name.toLowerCase()) };
+        });
+        distances.sort((a, b) => a.distance - b.distance);
+        matches = distances.slice(0, 3).map(item => item.product);
+        let html = `<p>No exact match found. Showing similar products:</p>`;
+        html += generateResultsTable(matches, personId);
+        resultDiv.innerHTML = html;
+      } else {
+        resultDiv.innerHTML = generateResultsTable(matches, personId);
+      }
+    }
+
+    // Generate a table with search results and an Add button for a person
+    function generateResultsTable(productsList, personId) {
+      let html = '<table>';
+      html += '<tr><th>Product Code</th><th>Product Name</th><th>RSP (dp)</th><th>MRP</th><th>Action</th></tr>';
+      productsList.forEach(p => {
+        let displayName = correctName(p.name);
+        html += `<tr>
+                    <td>${p.code}</td>
+                    <td>${displayName}</td>
+                    <td>${p.rsp.toFixed(2)}</td>
+                    <td>${p.mrp.toFixed(2)}</td>
+                    <td><button onclick='addProductToPerson("${personId}", ${JSON.stringify(p)})'>Add</button></td>
+                 </tr>`;
+      });
+      html += '</table>';
+      return html;
+    }
+
+    // Add a product to a person’s cart
+    function addProductToPerson(personId, product) {
+      if (persons[personId].selectedProducts[product.code]) {
+        persons[personId].selectedProducts[product.code].count++;
+      } else {
+        persons[personId].selectedProducts[product.code] = { product: product, count: 1 };
+      }
+      updatePersonCart(personId);
+    }
+
+    // Remove or decrease a product in a person’s cart
+    function cancelProduct(personId, productCode) {
+      if (persons[personId].selectedProducts[productCode]) {
+        if (persons[personId].selectedProducts[productCode].count > 1) {
+          persons[personId].selectedProducts[productCode].count--;
+        } else {
+          delete persons[personId].selectedProducts[productCode];
+        }
+      }
+      updatePersonCart(personId);
+    }
+
+    // Update the cart display for a specific person
+    function updatePersonCart(personId) {
+      const personDiv = document.getElementById(personId);
+      const cartDiv = personDiv.querySelector('.cart');
+      const sp = persons[personId].selectedProducts;
+      let keys = Object.keys(sp);
+      if (keys.length === 0) {
+        cartDiv.innerHTML = '<p>No products added yet.</p>';
+      } else {
+        let html = '<table>';
+        html += '<tr><th>Product Code</th><th>Product Name</th><th>RSP (dp)</th><th>MRP</th><th>Quantity</th><th>Discounted Price</th><th>Profit</th><th>Action</th></tr>';
+        let discountRate = parseFloat(personDiv.querySelector(`input[name="discountRate-${personId}"]:checked`).value);
+        keys.forEach(code => {
+          let item = sp[code];
+          let p = item.product;
+          let count = item.count;
+          let displayName = correctName(p.name);
+          let discPrice = p.mrp * (1 - discountRate);
+          if (discPrice < p.rsp) {
+            discPrice = p.rsp;
+          }
+          let profit = discPrice - p.rsp;
+          html += `<tr>
+                    <td>${p.code}</td>
+                    <td>${displayName}</td>
+                    <td>${p.rsp.toFixed(2)}</td>
+                    <td>${p.mrp.toFixed(2)}</td>
+                    <td>${count > 1 ? count + "×" : count}</td>
+                    <td>${discPrice.toFixed(2)}</td>
+                    <td>${profit.toFixed(2)}</td>
+                    <td><button class="cancel-btn" onclick="cancelProduct('${personId}', '${p.code}')">Cancel</button></td>
+                   </tr>`;
+        });
+        html += '</table>';
+        cartDiv.innerHTML = html;
+      }
+      updatePersonTotals(personId);
+    }
+
+    // Calculate and display totals for a specific person
+    function updatePersonTotals(personId) {
+      const personDiv = document.getElementById(personId);
+      const totalsDiv = personDiv.querySelector('.totals');
+      let discountRate = parseFloat(personDiv.querySelector(`input[name="discountRate-${personId}"]:checked`).value);
+      const sp = persons[personId].selectedProducts;
+      let totalRSP = 0, totalMRP = 0, totalDiscounted = 0, totalProfit = 0;
+      Object.keys(sp).forEach(code => {
+        let item = sp[code];
+        let count = item.count;
+        totalRSP += item.product.rsp * count;
+        totalMRP += item.product.mrp * count;
+        let discPrice = item.product.mrp * (1 - discountRate);
+        if (discPrice < item.product.rsp) {
+          discPrice = item.product.rsp;
+        }
+        totalDiscounted += discPrice * count;
+        totalProfit += (discPrice - item.product.rsp) * count;
+      });
+      totalsDiv.innerHTML = `
+        <p>Total RSP: ${totalRSP.toFixed(2)}</p>
+        <p>Total MRP: ${totalMRP.toFixed(2)}</p>
+        <p>Total Discounted Price: ${totalDiscounted.toFixed(2)}</p>
+        <p>Total Profit: ${totalProfit.toFixed(2)}</p>
+      `;
+      updateGrandTotals();
+    }
+
+    // Update grand totals across all persons
+    function updateGrandTotals() {
+      let grandRSP = 0, grandMRP = 0, grandDiscounted = 0, grandProfit = 0;
+      Object.keys(persons).forEach(personId => {
+        const sp = persons[personId].selectedProducts;
+        const personDiv = document.getElementById(personId);
+        let discountRate = personDiv ? parseFloat(personDiv.querySelector(`input[name="discountRate-${personId}"]:checked`).value) : 0;
+        Object.keys(sp).forEach(code => {
+          let item = sp[code];
+          let count = item.count;
+          grandRSP += item.product.rsp * count;
+          grandMRP += item.product.mrp * count;
+          let discPrice = item.product.mrp * (1 - discountRate);
+          if (discPrice < item.product.rsp) {
+            discPrice = item.product.rsp;
+          }
+          grandDiscounted += discPrice * count;
+          grandProfit += (discPrice - item.product.rsp) * count;
+        });
+      });
+      document.getElementById('grandTotalsContent').innerHTML = `
+        <p>Grand Total RSP: ${grandRSP.toFixed(2)}</p>
+        <p>Grand Total MRP: ${grandMRP.toFixed(2)}</p>
+        <p>Grand Total Discounted Price: ${grandDiscounted.toFixed(2)}</p>
+        <p>Grand Total Profit: ${grandProfit.toFixed(2)}</p>
+      `;
+    }
+
+    // Dummy share function (implementation depends on integration with WhatsApp)
+    function shareCart(personId) {
+      alert('Share functionality is not implemented yet.');
+    }
+
+    // Automatically add Person 1 when the page loads
+    window.onload = function() {
+      addPerson();
+    };
+  </script>
+
+  <!-- Disclaimer Section -->
+  <div class="disclaimer">
+    <p>
+      Disclaimer: This tool is an independent project and is not affiliated with, endorsed by, or in any way officially connected with any company whose products are mentioned or used herein. All trademarks and registered trademarks are the property of their respective owners. The use of any such names, logos, or trademarks is for informational purposes only and does not imply any association.
+    </p>
+  </div>
+</body>
+</html>
